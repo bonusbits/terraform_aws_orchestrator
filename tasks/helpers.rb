@@ -6,8 +6,11 @@ def load_project_vars
   # raise 'ERROR: Missing DEPLOY_ENV environment variable' unless ENV['DEPLOY_ENV']
   # deploy_env = ENV.fetch('DEPLOY_ENV', 'local')
   # raise 'ERROR: Missing TF_WORKSPACE environment variable' unless ENV['TF_WORKSPACE']
-
-  puts "Terraform AWS Orchestrator - v#{File.open('VERSION', &:readline)} - TF_WORKSPACE (#{ENV['TF_WORKSPACE']})"
+  if ENV['TF_WORKSPACE']
+    puts "Terraform AWS Orchestrator - v#{File.open('VERSION', &:readline)} - TF_WORKSPACE (#{ENV['TF_WORKSPACE']})"
+  else
+    puts "Terraform AWS Orchestrator - v#{File.open('VERSION', &:readline)})"
+  end
   puts '-----------------------------------------------------------------------'
   tf_workspace = ENV.fetch('TF_WORKSPACE', 'demo')
   @project_vars = YAML.load_file(File.join(__dir__, '../vars/shared.yml'))

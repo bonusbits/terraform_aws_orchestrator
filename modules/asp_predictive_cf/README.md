@@ -1,0 +1,1 @@
+## AWS Autoscaling Plan Module

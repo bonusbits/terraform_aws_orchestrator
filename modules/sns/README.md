@@ -1,0 +1,1 @@
+## AWS Simple Notification Services Module

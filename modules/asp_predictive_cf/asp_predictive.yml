@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  myTagKey:
+    Type: String
+  myTagValue:
+    Type: String
+  AutoScalingGroup:
+    Type: String
+    Description: Name of the Auto Scaling group
+  ASGMinCapacity:
+    Type: Number
+  ASGMaxCapacity:
+    Type: Number
+  ASGTargetUtilization:
+    Type: Number
+    Default: 50.0
+  ASGEstimatedInstanceWarmup:
+    Type: Number
+    Default: 600
+
+Resources:
+  myScalingPlan:
+    Type: AWS::AutoScalingPlans::ScalingPlan
+    Properties:
+      ApplicationSource:
+        TagFilters:
+          - Key: !Ref myTagKey
+            Values:
+              - !Ref myTagValue
+      ScalingInstructions:
+        - MinCapacity: !Ref ASGMinCapacity
+          MaxCapacity: !Ref ASGMaxCapacity
+          ServiceNamespace: autoscaling
+          ScalableDimension: autoscaling:autoScalingGroup:DesiredCapacity
+          ResourceId: !Join
+            - /
+            - - autoScalingGroup
+              - !Ref AutoScalingGroup
+          TargetTrackingConfigurations:
+            - PredefinedScalingMetricSpecification:
+                PredefinedScalingMetricType: "ASGAverageCPUUtilization"
+              TargetValue: !Ref ASGTargetUtilization
+              EstimatedInstanceWarmup: !Ref ASGEstimatedInstanceWarmup
+          PredefinedLoadMetricSpecification:
+            PredefinedLoadMetricType: "ASGTotalCPUUtilization"
+          PredictiveScalingMode: "ForecastAndScale"
+          PredictiveScalingMaxCapacityBehavior: "SetMaxCapacityAboveForecastCapacity"
+          PredictiveScalingMaxCapacityBuffer: 25
+          ScheduledActionBufferTime: 600

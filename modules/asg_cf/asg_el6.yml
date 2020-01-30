@@ -1,0 +1,241 @@
+---
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Autoscaling Group & LaunchConfig
+
+Parameters:
+  # ALB
+  TargetGroupARNs:
+    Type: String
+
+  # Ownership
+  Environment:
+    Type: String
+    Default: dev
+  Owner:
+    Type: String
+    Default: FirstName LastName
+  Project:
+    Type: String
+    Default: BonusBits Base Cookbook Deploy Testing
+
+  # Instance
+  AMI:
+    Description: Enter Baked AMI ID.
+    Type: String
+    Default: ami-00000000
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+  InstanceType:
+    Type: String
+    AllowedValues:
+      - c5.large
+      - m3.medium
+      - m5.large
+      - r5.large
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+    Default: t3.small
+
+  # Network
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  Subnet1:
+    Type: String
+  Subnet2:
+    Type: String
+  Subnet3:
+    Type: String
+  SecurityGroup:
+    Type: String
+  IamInstanceProfile:
+    Type: String
+
+  # Scaling
+  DesiredCapacityCount:
+    Description: Enter Desired Capacity Instance Auto Scale Count.
+    Type: Number
+    Default: '2'
+  MinAutoScaleCount:
+    Description: Enter Minimum Instance Auto Scale Count.
+    Type: Number
+    Default: '2'
+  MaxAutoScaleCount:
+    Description: Enter Maximum Instance Auto Scale Count.
+    Type: Number
+    Default: '4'
+  AsgSnsTopicArn:
+    Description: Enter Notification SNS Topic ARN for Autoscaling Group.
+    Type: String
+    Default: arn:aws:sns:us-west-2:000000000000:asg-alerts
+
+Resources:
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: 'false'
+      IamInstanceProfile:
+        Ref: IamInstanceProfile
+      InstanceType:
+        Ref: InstanceType
+      SecurityGroups:
+        - Ref: SecurityGroup
+      ImageId:
+        Ref: AMI
+      KeyName:
+        Ref: KeyPairName
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            DeleteOnTermination: 'true'
+            VolumeType: gp2
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          yum update -y
+          yum install -y aws-cfn-bootstrap aws-cli cloud-init
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource LaunchConfiguration --region ${AWS::Region} --configsets setup
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource AutoScalingGroup --region ${AWS::Region}
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          setup:
+            - config_cfn
+        config_cfn:
+          files:
+            "/etc/cfn/cfn-hup.conf":
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: '000400'
+              owner: root
+              group: root
+            "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.LaunchConfiguration.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource LaunchConfiguration --region ${AWS::Region} --configsets setup
+                runas=root
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/cfn/cfn-hup.conf
+                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    CreationPolicy:
+      AutoScalingCreationPolicy:
+        MinSuccessfulInstancesPercent: 100
+      ResourceSignal:
+        Count:
+          Ref: MinAutoScaleCount
+        Timeout: PT15M
+    UpdatePolicy:
+      # Ignore differences in group size properties caused by scheduled actions
+      AutoScalingScheduledAction:
+        IgnoreUnmodifiedGroupSizeProperties: true
+      AutoScalingReplacingUpdate:
+        WillReplace: true
+        # WaitOnResourceSignals: true
+    Properties:
+      LaunchConfigurationName:
+        Ref: LaunchConfiguration
+      MinSize:
+        Ref: MinAutoScaleCount
+      MaxSize:
+        Ref: MaxAutoScaleCount
+      DesiredCapacity:
+        Ref: DesiredCapacityCount
+      HealthCheckType: EC2
+      TargetGroupARNs:
+        - Ref: TargetGroupARNs
+      MetricsCollection:
+        - Granularity: 1Minute
+          Metrics:
+            - GroupMinSize
+            - GroupMaxSize
+      NotificationConfigurations:
+        - TopicARN:
+            Ref: AsgSnsTopicArn
+          NotificationTypes:
+            - autoscaling:EC2_INSTANCE_LAUNCH
+            - autoscaling:EC2_INSTANCE_LAUNCH_ERROR
+            - autoscaling:EC2_INSTANCE_TERMINATE
+            - autoscaling:EC2_INSTANCE_TERMINATE_ERROR
+      VPCZoneIdentifier:
+        - !Ref Subnet1
+        - !Ref Subnet2
+        - !Ref Subnet3
+      Tags:
+        - Key: Name
+          Value:
+            Ref: AWS::StackName
+          PropagateAtLaunch: 'true'
+        - Key: Owner
+          Value:
+            Ref: Owner
+          PropagateAtLaunch: 'true'
+        - Key: Project
+          Value:
+            Ref: Project
+          PropagateAtLaunch: 'true'
+        - Key: Environment
+          Value:
+            Ref: Environment
+          PropagateAtLaunch: 'true'
+
+Outputs:
+  # Ownership
+  Environment:
+    Description: Dev, QA, Prd
+    Value: !Ref Environment
+  Owner:
+    Description: Team or Individual that Owns this Formation.
+    Value: !Ref Owner
+  Project:
+    Description: Name of associated project.
+    Value: !Ref Project
+
+  # ASG
+  AutoScalingGroup:
+    Value: !Ref AutoScalingGroup
+  LaunchConfiguration:
+    Value: !Ref LaunchConfiguration
+
+  # Network
+  VPC:
+    Value: !Ref VPC
+  Subnet1:
+    Value: !Ref Subnet1
+  Subnet2:
+    Value: !Ref Subnet2
+  Subnet3:
+    Value: !Ref Subnet3
+  SecurityGroup:
+    Value: !Ref SecurityGroup
+
+  # ALB
+  TargetGroupARNs:
+    Description: TargetGroupARNs
+    Value: !Ref TargetGroupARNs
+
+  # Instance
+  AMI:
+    Description: Key Pair Name Used.
+    Value: !Ref AMI
+  KeyPairName:
+    Description: Key Pair Name Used.
+    Value: !Ref KeyPairName
+  InstanceType:
+    Description: Instance Type Used.
+    Value: !Ref InstanceType

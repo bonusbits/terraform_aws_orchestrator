@@ -1,0 +1,3 @@
+# EXAMPLE: Autoscaling Web Stack + VPC
+tf_root_path: environments/vpc
+tf_var_file: environments/vpc/example_dev.tfvars

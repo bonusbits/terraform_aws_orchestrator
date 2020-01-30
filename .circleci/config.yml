@@ -17,15 +17,15 @@ jobs:
       - run:
           name: Create Reports Directory
           command: mkdir reports
-      - run:
-          name: Install Kitchen Docker
-          command: chef gem install kitchen-docker -v 2.9.0 --no-user-install --no-document
+#      - run:
+#          name: Install Kitchen Docker
+#          command: chef gem install kitchen-docker -v 2.9.0 --no-user-install --no-document
       - run:
           name: Install Junit Formatter
           command: chef gem install rspec_junit_formatter -v 0.4.1 --no-user-install --no-document
       - run:
           name: CI Debug Outputs
-          command: chef gem list | grep -i kitchen && env && ls /opt/chefdk/embedded/lib/ruby/gems/2.6.0/gems | grep kitchen
+          command: env | sort && chef gem list | grep -i kitchen && ls /opt/chefdk/embedded/lib/ruby/gems/2.6.0/gems | grep kitchen
       - run:
           name: Run Rake Task
           command: /opt/chefdk/embedded/bin/rake style_tests --trace

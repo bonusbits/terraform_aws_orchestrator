@@ -8,7 +8,7 @@ require_relative 'tasks/helpers'
 
 # Check for Required Environment Vars
 unless ENV['CIRCLECI']
-  raise 'ERROR: Missing TF_WORKSPACE environment variable' unless ENV['TF_WORKSPACE']
+  raise 'ERROR: Missing TF_WORKSPACE environment variable!' unless ENV['TF_WORKSPACE']
 end
 # raise 'ERROR: Missing AWS_PROFILE environment variable' unless ENV['AWS_PROFILE']
 # raise 'ERROR: Missing AWS_REGION environment variable' unless ENV['AWS_REGION']

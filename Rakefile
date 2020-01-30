@@ -7,8 +7,9 @@ require 'bundler/setup'
 require_relative 'tasks/helpers'
 
 # Check for Required Environment Vars
-raise 'ERROR: Missing TF_WORKSPACE environment variable' unless ENV['TF_WORKSPACE']
-
+unless ENV['CIRCLECI']
+  raise 'ERROR: Missing TF_WORKSPACE environment variable' unless ENV['TF_WORKSPACE']
+end
 # raise 'ERROR: Missing AWS_PROFILE environment variable' unless ENV['AWS_PROFILE']
 # raise 'ERROR: Missing AWS_REGION environment variable' unless ENV['AWS_REGION']
 # raise 'ERROR: Missing TF_VAR_aws_region environment variable' unless ENV['TF_VAR_aws_region']

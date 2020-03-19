@@ -1,9 +1,3 @@
-provider "aws" {
-  profile = var.common.aws_profile
-  region = var.common.region
-  version = "~> 2.44"
-}
-
 locals {
   name = "${replace(var.common.name, "_", "-")}-${var.parameters.s3_bucket_name_suffix}-${var.common.environment}"
   create = var.create

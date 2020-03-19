@@ -1,4 +1,4 @@
-[![Project Release](https://img.shields.io/badge/release-v1.0.0-blue.svg)](https://github.com/bonusbits/terraform_aws_orchestrator)
+[![Project Release](https://img.shields.io/badge/release-v2.0.0-blue.svg)](https://github.com/bonusbits/terraform_aws_orchestrator)
 [![Circle CI](https://circleci.com/gh/bonusbits/terraform_aws_orchestrator/tree/master.svg?style=shield)](https://circleci.com/gh/bonusbits/terraform_aws_orchestrator/tree/master)
 [![GitHub issues](https://img.shields.io/github/issues/bonusbits/terraform_aws_orchestrator.svg)](https://github.com/bonusbits/terraform_aws_orchestrator/issues)
 
@@ -26,19 +26,30 @@ Create or pick an example project variable file in the **vars** directory. This 
 
 | Variables | Example | Description |
 | :--- | :--- | :--- |
-| tf_root_path | environments/include_vpc/ec2_asg_web | Where the main.tf, outputs.tf and variables.tf files are that pick which modules to use.
-| tf_var_file | environments/include_vpc/ec2_asg_web/dev.tfvars | Specific Terraform variables that are fed to modules.
+| tf_root_path | environments/vpc | Where the main.tf, outputs.tf and variables.tf files are that pick which modules to use.
+| tf_var_file | environments/vpc/example/dev.tfvars | Specific Terraform variables that are fed to modules.
+| keys_path | environments/vpc/example/secrets | SSH Key path
 
 ## Set Environment Variables
+Having the AWS Region as part of the name is so the workspace that is created includes the region name. That way if we use the same tfvars but just make different yml files that match the workspace name we won't end up with conflicting workspace names.
 1. ```TF_WORKSPACE``` (Required) to the filename of the project variables yaml ```vars/*.yml```<br>
     ```bash
     # ./vars/vpc_dev.yml
-    export TF_WORKSPACE="vpc_dev"
+    export TF_WORKSPACE="vpc_usw2_dev"
     ```
-**OR**
-```bash
-TF_WORKSPACE="vpc_dev" rake deploy:tf
-```
+    **OR**
+    ```bash
+    TF_WORKSPACE="vpc_usw2_dev" rake deploy:tf
+    ```
+
+1. ```AWS_REGION``` (Required) This is what is used to actually set which region to communicate with<br>
+    ```bash
+    export AWS_REGION="vpc_usw2_dev"
+    ```
+    **OR**
+    ```bash
+    AWS_REGION="us-west-2" rake deploy:tf
+    ```
 
 
 ## List Rake Tasks
@@ -76,21 +87,43 @@ rake utf
 #### Rake Task List
 | Task | Description |
 | :--- | :--- |
-| default                     | Alias (style:ruby:auto_correct) |
-| deploy:tf                   | Deploy Environment Based on DEPLOY_ENV environment variable |
-| deploy:tf_prep              | Run Terraform Init & Plan |
-| dtf                         | Alias (deploy:tf) |
-| show_vars                   | Show Project Variables from YAML vars Files |
-| style:ruby                  | RuboCop |
-| style:ruby:auto_correct     | Auto-correct RuboCop offenses |
-| style_tests                 | Alias (style:ruby) |
-| terraform:apply_var_file    | Deploy Environment Based on DEPLOY_ENV environment variable |
-| terraform:console           | Load Terraform Console with Var File Based on DEPLOY_ENV environment variable |
-| terraform:destroy_var_file  | Delete Environment Based on DEPLOY_ENV environment variable |
-| terraform:init              | Deploy Environment Based on DEPLOY_ENV environment variable |
-| terraform:plan_var_file     | Deploy Environment Based on DEPLOY_ENV environment variable |
-| tfi                         | Alias (terraform:init) |
-| tfl                         | Alias (terraform:list_state) |
-| tfp                         | Alias (deploy:tf_prep) |
-| undeploy:tf                 | Delete Environment Based on DEPLOY_ENV environment variable |
-| utf                         | Alias (undeploy:tf) |
+| apply                             | Alias (terraform:apply) |
+| console                           | Alias (terraform:console) |
+| default                           | Alias (style:ruby:auto_correct) |
+| deploy:predefined:demo_usw1_dev   | Deploy Demo US-West-1 DEV |
+| deploy:predefined:demo_usw1_prd   | Deploy Demo US-West-1 PRD |
+| deploy:predefined:demo_usw2_dev   | Deploy Demo US-West-2 DEV |
+| deploy:predefined:demo_usw2_prd   | Deploy Demo US-West-2 PRD |
+| deploy:tf                         | Deploy Environment Based on environment variables |
+| deploy:tf_prep                    | Create SSH Keys, Run Terraform Init & Plan |
+| destroy                           | Alias (terraform:destroy) |
+| dtf                               | Alias (deploy:tf) |
+| init                              | Alias (terraform:init) |
+| plan                              | Alias (terraform:plan) |
+| prep                              | Alias (deploy:tf_prep) |
+| providers                         | Alias (terraform:providers) |
+| refresh                           | Alias (terraform:refresh) |
+| secrets:generate_ssh_keys         | Generate AWS SSH Keys that Terraform Can Upload to AWS |
+| show                              | Alias (terraform:show) |
+| show_vars                         | Show Project Variables from YAML vars Files |
+| style:ruby                        | RuboCop |
+| style:ruby:auto_correct           | Auto-correct RuboCop offenses |
+| style_tests                       | Alias (style:ruby) |
+| terraform:apply                   | Run Terraform Apply |
+| terraform:console                 | Run Terraform Console |
+| terraform:destroy                 | Run Terraform Destroy |
+| terraform:init                    | Run Terraform Initialization |
+| terraform:init_upgrade            | Upgrade Terraform Providers |
+| terraform:plan                    | Run Terraform Plan |
+| terraform:providers               | Display Terraform Providers |
+| terraform:refresh                 | Refresh Terraform State |
+| terraform:show                    | Show Terraform State |
+| terraform:validate                | Validate Terraform Configurations |
+| terraform:workspaces              | Display Terrafrom Workspaces |
+| undeploy:predefined:demo_usw1_dev | Deploy Demo US-West-1 DEV |
+| undeploy:predefined:demo_usw1_prd | Deploy Demo US-West-1 PRD |
+| undeploy:predefined:demo_usw2_dev | Deploy Demo US-West-2 DEV |
+| undeploy:predefined:demo_usw2_prd | Deploy Demo US-West-2 PRD |
+| undeploy:tf                       | Delete Environment Based on environment variables |
+| utf                               | Alias (undeploy:tf) |
+| workspaces                        | Alias (terraform:workspaces) |

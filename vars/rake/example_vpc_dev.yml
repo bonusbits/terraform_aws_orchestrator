@@ -1,0 +1,11 @@
+# EXAMPLE: VPC
+
+disable_continue_prompt: false
+disable_init: false
+disable_create_ssh_keys: false
+tf_roles: # Add root modules in order of operation
+  - network
+tf_roles_path: environments
+tf_shared_var_file: vars/terraform/example/shared-dev.tfvars
+tf_env_var_file: vars/terraform/example/dev-COLOR.tfvars
+tf_secrets_file: vars/secrets/example/dev.tfvars

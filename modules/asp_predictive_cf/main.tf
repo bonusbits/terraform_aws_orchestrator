@@ -1,9 +1,3 @@
-provider "aws" {
-  profile = var.common.aws_profile
-  region = var.common.region
-  version = "~> 2.44"
-}
-
 locals {
   name = "${replace(var.common.name, "_", "-")}-${var.common.environment}-${element(var.parameters.name, 0)}-asp-predictive"
 }

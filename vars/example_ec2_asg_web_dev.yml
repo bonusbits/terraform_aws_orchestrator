@@ -1,3 +1,0 @@
-# EXAMPLE: Autoscaling Web Stack + VPC
-tf_root_path: environments/include_vpc/ec2_asg_web
-tf_var_file: environments/include_vpc/ec2_asg_web/example_dev.tfvars

@@ -1,7 +1,7 @@
 # Mapped
-variable common {type = map}
+variable common {type = map(string)}
 variable create {type = bool}
-variable parameters {type = map}
+variable parameters {type = map(string)}
 
 # VPC Module Outputs
 variable "security_groups" {type = list}
